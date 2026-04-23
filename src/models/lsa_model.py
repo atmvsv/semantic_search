@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
-from typing import Dict, List, Tuple
 
 from src.models.base import BaseSearchEngine
 from src.preprocessing import TextPreprocessor
@@ -14,18 +13,18 @@ class LSAEngine(BaseSearchEngine):
         self.tfidf = TfidfVectorizer()
         self.svd = TruncatedSVD(n_components=n_components, random_state=42)
         self.doc_vectors: np.ndarray | None = None
-        self.doc_ids: List[str] = []
+        self.doc_ids: list[str] = []
 
-    def index(self, corpus: Dict[str, str]) -> None:
+    def index(self, corpus: dict[str, str]) -> None:
         self.doc_ids = list(corpus.keys())
         processed_docs = [" ".join(self.preprocessor.clean_full(doc)) for doc in corpus.values()]
 
         tfidf_matrix = self.tfidf.fit_transform(processed_docs)
         self.doc_vectors = self.svd.fit_transform(tfidf_matrix)
 
-    def search(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
         if self.doc_vectors is None:
-            raise ValueError("Index is not built. Call index() first.")
+            raise RuntimeError("Index is not built. Call index() first.")
 
         processed_query = " ".join(self.preprocessor.clean_full(query))
         query_tfidf = self.tfidf.transform([processed_query])

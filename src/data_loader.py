@@ -1,16 +1,17 @@
 import json
+from pathlib import Path
+from typing import Final
+from dataclasses import dataclass, asdict
+
 import pandas as pd
 from datasets import load_dataset
-from pathlib import Path
-from typing import Dict, List, Final
-from dataclasses import dataclass, asdict
 
 
 @dataclass(frozen=True)
 class IRDataset:
-    corpus: Dict[str, str]
-    queries: Dict[str, str]
-    relevant_docs: Dict[str, List[str]]
+    corpus: dict[str, str]
+    queries: dict[str, str]
+    relevant_docs: dict[str, list[str]]
 
 
 class QQPDataLoader:
@@ -32,15 +33,13 @@ class QQPDataLoader:
         df = dataset.to_pandas()
 
         duplicates_df = df[df["label"] == 1].dropna().copy()
+        sampled_df = duplicates_df.sample(
+            n=min(num_pairs, len(duplicates_df)), random_state=42
+        )
 
-        if len(duplicates_df) > num_pairs:
-            sampled_df = duplicates_df.sample(n=num_pairs, random_state=42)
-        else:
-            sampled_df = duplicates_df
-
-        corpus: Dict[str, str] = {}
-        queries: Dict[str, str] = {}
-        relevant_docs: Dict[str, List[str]] = {}
+        corpus: dict[str, str] = {}
+        queries: dict[str, str] = {}
+        relevant_docs: dict[str, list[str]] = {}
 
         for _, row in sampled_df.iterrows():
             q1_id = f"q1_{row['idx']}"
@@ -54,11 +53,7 @@ class QQPDataLoader:
                 corpus[q2_id] = q2_text
                 relevant_docs[q1_id] = [q2_id]
 
-        ir_dataset = IRDataset(
-            corpus=corpus,
-            queries=queries,
-            relevant_docs=relevant_docs
-        )
+        ir_dataset = IRDataset(corpus=corpus, queries=queries, relevant_docs=relevant_docs)
         self._save_dataset(ir_dataset)
 
         return ir_dataset

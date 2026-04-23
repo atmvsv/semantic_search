@@ -2,7 +2,7 @@ import time
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 from src.data_loader import QQPDataLoader
 from src.models.bm25_model import BM25Engine
@@ -33,7 +33,7 @@ def main() -> None:
         "SBERT": SBERTEngine(device="mps")
     }
 
-    results: Dict[str, Dict[str, Any]] = {}
+    results: dict[str, dict[str, Any]] = {}
 
     for model_name, model in models.items():
         logging.info(f"--- Evaluating {model_name} ---")
